@@ -18,18 +18,18 @@ def k2(T):
 
 def omega(T):
     # return hp / (hp**2 + k1(T) * hp + k1(T)*k2(T))
-    return 1 / (1 + 1/k1(T) + 1/(k1(T) * k2(T)))
+    return 10**14 / (1 + 1/k1(T) + 1/(k1(T) * k2(T)))
 
 def dF(N, N0):
-    return 3.6 * log2(N / N0)
+    return 3.6 * log2(N / N0) + 343 * 10**3
 
 def diffeq(y, t, alpha, beta, gamma, delta, mu1, mu2, lmda, N0):
     N1, N2, N3, T1, T2 = y
-    dydt = [-alpha*(N1 - omega(T1)*N2),
+    dydt = [(-alpha*(N1 - omega(T1)*N2)),
             alpha*(N1 - omega(T1)*N2) - beta*(N2-delta*N3),
             beta*(N2 - delta*N3),
-            1/mu1 * (-lmda*T1 - gamma*(T2 - T1) + dF(N1, N0)),
-            1/mu2*gamma*(T2 - T1)]
+            1/mu1 * (-lmda*T1 - gamma*(T1 - T2) + dF(N1, N0)),
+            1/mu2*gamma*(T1 - T2)]
     return dydt
 
 def plot(t, sol):
@@ -49,27 +49,30 @@ def plot(t, sol):
     plt.legend(loc='best')
     plt.grid()
 
-    print(sol[:, 3][0] - sol[:, 3][-1])
-    print(sol[:, 4][0] - sol[:, 4][-1])
+    print("N1 quota: ", [N1 / 409.8 for N1 in sol[:, 0]])
+    print("omega(T1): ", omega(sol[:, 3][0]))
+
+    print("T1 diff: ", sol[:, 3][0] - sol[:, 3][-1])
+    print("T2 diff: ", sol[:, 4][0] - sol[:, 4][-1])
 
     plt.show()
 
 def main():
-    rho = 1000
+    rho = 1
     cp = 4183
     H1 = 150
     H2 = 2400
 
     alpha = 1/5 # made up -> should come from Henry's law
     beta = 1/20 # made up
-    gamma = 1.6 # from here: https://link.springer.com/article/10.1007/s003820000059, above eq. (7) (called k there)
+    gamma = 1.6 * 10**4 # from here: https://link.springer.com/article/10.1007/s003820000059, above eq. (7) (called k there)
     delta = H1/H2
     mu1 = rho * cp * H1
     mu2 = rho * cp * H2
-    lmda = 1 # lmao just let it be zero for now
+    lmda = 0 # lmao just let it be zero for now
     N0 = 409.8 # mean value 2019 (wikipedia)
 
-    N1_0 = N0
+    N1_0 = N0*2
     N2_0 = N0/2
     N3_0 = N0/2
     T1_0 = 25
